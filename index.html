@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GasPro POS</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="css/style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Login -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <h2>GasPro POS</h2>
+      <p>Login to continue</p>
+
+      <input id="loginUsername" class="form-input" type="text" placeholder="Username" />
+      <input id="loginPassword" class="form-input" type="password" placeholder="Password" />
+
+      <button id="loginBtn" class="action-btn primary-btn full-btn mt-10">Login</button>
+
+      <div class="demo-login-box">
+        <small>Owner: owner / 1234</small>
+        <small>Cashier: cashier / 1234</small>
+        <small>Staff: staff / 1234</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input -->
+  <input type="file" id="backupImportInput" accept=".json" style="display:none;" />
+
+  <!-- App -->
+  <div id="app" class="app-shell hidden">
+    <!-- Header -->
+    <header id="topHeader" class="top-header">
+      <div class="header-left">
+        <h1 id="pageTitle" class="page-title">دکان</h1>
+        <p id="headerSubTitle" class="page-subtitle">Gas Shop POS</p>
+      </div>
+
+      <div class="header-right">
+        <button id="globalSearchBtn" class="icon-btn">⌕</button>
+        <button id="alertsBtn" class="icon-btn has-badge">
+          🔔
+          <span id="alertsBadge" class="badge-dot">0</span>
+        </button>
+        <button id="logoutBtn" class="icon-btn">⎋</button>
+        <button id="headerMenuBtn" class="icon-btn">⋮</button>
+      </div>
+    </header>
+
+    <!-- Main Pages -->
+    <main id="pageContainer" class="page-container">
+      <!-- SHOP PAGE -->
+      <section id="shopPage" class="page active-page">
+        <div class="page-scroll">
+          <section class="bill-strip card">
+            <div class="bill-strip-item">
+              <span class="label">Bill No</span>
+              <strong id="currentBillNo">INV-1001</strong>
+            </div>
+            <div class="bill-strip-item">
+              <span class="label">Date</span>
+              <strong id="currentBillDate">03-Apr-2026</strong>
+            </div>
+            <div class="bill-strip-item">
+              <span class="label">Time</span>
+              <strong id="currentBillTime">04:45 PM</strong>
+            </div>
+          </section>
+
+          <section class="customer-panel card">
+            <div class="section-head">
+              <h2>Customer</h2>
+              <button id="addCustomerBtn" class="mini-btn">+ Add</button>
+            </div>
+
+            <div class="customer-search-wrap">
+              <input
+                id="customerSearchInput"
+                class="form-input"
+                type="text"
+                placeholder="Search by code, name, phone"
+                readonly
+              />
+              <button id="openCustomerSearchBtn" class="icon-btn small-icon-btn">⌕</button>
+            </div>
+
+            <div id="selectedCustomerCard" class="customer-card empty-state-card">
+              <p>No customer selected</p>
+            </div>
+          </section>
+
+          <section class="product-grid-section card">
+            <div class="section-head">
+              <h2>Products</h2>
+            </div>
+
+            <div class="product-grid">
+              <button class="product-btn size-btn" data-size="15">15kg</button>
+              <button class="product-btn size-btn" data-size="35">35kg</button>
+              <button class="product-btn size-btn" data-size="45">45kg</button>
+              <button id="customKgBtn" class="product-btn secondary-btn">Custom KG</button>
+              <button id="returnEmptyBtn" class="product-btn warning-btn">Return Empty</button>
+              <button id="receivePaymentBtn" class="product-btn success-btn">Receive Payment</button>
+            </div>
+          </section>
+
+          <section class="cart-section card">
+            <div class="section-head">
+              <h2>Current Bill</h2>
+              <button id="clearCartBtn" class="text-btn danger-text">Clear</button>
+            </div>
+
+            <div id="cartItemsList" class="cart-items-list">
+              <div class="empty-list-state">
+                <p>No items added yet</p>
+              </div>
+            </div>
+
+            <div class="cart-tools">
+              <button id="addDiscountBtn" class="chip-btn">Discount</button>
+              <button id="addChargesBtn" class="chip-btn">Charges</button>
+              <button id="addNoteBtn" class="chip-btn">Note</button>
+            </div>
+          </section>
+
+          <section class="totals-section card">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <strong id="subtotalAmount">0</strong>
+            </div>
+            <div class="total-row">
+              <span>Discount</span>
+              <strong id="discountAmount">0</strong>
+            </div>
+            <div class="total-row">
+              <span>Previous Due</span>
+              <strong id="previousDueAmount">0</strong>
+            </div>
+            <div class="total-row grand-row">
+              <span>Grand Total</span>
+              <strong id="grandTotalAmount">0</strong>
+            </div>
+            <div class="total-row total-input-row">
+              <span>Paid</span>
+              <input id="paidAmountInput" class="form-input small-input" type="number" value="0" />
+            </div>
+            <div class="total-row balance-row">
+              <span>Balance</span>
+              <strong id="balanceAmount">0</strong>
+            </div>
+
+            <div class="payment-method-wrap">
+              <label for="paymentMethodSelect">Payment Method</label>
+              <select id="paymentMethodSelect" class="form-select">
+                <option value="cash">Cash</option>
+                <option value="bank">Bank</option>
+                <option value="easypaisa">EasyPaisa</option>
+                <option value="jazzcash">JazzCash</option>
+                <option value="mixed">Mixed</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="action-section card">
+            <div class="action-grid">
+              <button id="saveDraftBtn" class="action-btn secondary-btn">Save Draft</button>
+              <button id="completeBillBtn" class="action-btn primary-btn">Complete Bill</button>
+              <button id="printBillBtn" class="action-btn">Print</button>
+              <button id="pdfBillBtn" class="action-btn">PDF</button>
+              <button id="whatsappBillBtn" class="action-btn success-btn">WhatsApp</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- BILLS PAGE -->
+      <section id="billsPage" class="page">
+        <div class="page-scroll">
+          <section class="filters-section card">
+            <div class="section-head">
+              <h2>Bills</h2>
+            </div>
+
+            <div class="filter-grid">
+              <input id="billSearchInput" class="form-input" type="text" placeholder="Bill no / customer / phone" />
+              <input id="billDateFrom" class="form-input" type="date" />
+              <input id="billDateTo" class="form-input" type="date" />
+
+              <select id="billStatusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option value="draft">Draft</option>
+                <option value="completed">Completed</option>
+                <option value="partial">Partial Paid</option>
+                <option value="credit">Credit</option>
+                <option value="closed">Closed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="paid">Paid</option>
+              </select>
+
+              <select id="emptyStatusFilter" class="form-select">
+                <option value="">All Empty Status</option>
+                <option value="none">No Empty</option>
+                <option value="pending">Return Pending</option>
+                <option value="returned">Returned</option>
+                <option value="paid">Paid No Return</option>
+              </select>
+
+              <select id="billSizeFilter" class="form-select">
+                <option value="">All Sizes</option>
+                <option value="15">15kg</option>
+                <option value="35">35kg</option>
+                <option value="45">45kg</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="bill-list-section card">
+            <div id="billsList" class="list-wrap"></div>
+          </section>
+
+          <section class="bill-preview-section card">
+            <div class="section-head">
+              <h2>Bill Preview</h2>
+            </div>
+
+            <div id="billPreviewPanel" class="preview-panel">
+              <p>Select a bill to preview</p>
+            </div>
+
+            <div class="preview-actions">
+              <button id="billOpenBtn" class="action-btn">Open</button>
+              <button id="billPrintBtn" class="action-btn">Print</button>
+              <button id="billPdfBtn" class="action-btn">PDF</button>
+              <button id="billWhatsappBtn" class="action-btn success-btn">WhatsApp</button>
+              <button id="billMarkPaidBtn" class="action-btn warning-btn">Mark Paid</button>
+              <button id="billCloseBtn" class="action-btn secondary-btn">Close Order</button>
+              <button id="billDeleteBtn" class="action-btn warning-btn">Delete</button>
+              <button id="billEditBtn" class="action-btn">Edit</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- LEDGER PAGE -->
+      <section id="ledgerPage" class="page">
+        <div class="page-scroll">
+          <section class="ledger-search-section card">
+            <div class="section-head">
+              <h2>Ledger</h2>
+            </div>
+            <input
+              id="ledgerCustomerSearchInput"
+              class="form-input"
+              type="text"
+              placeholder="Search by code, name, phone, ID card"
+            />
+          </section>
+
+          <section id="ledgerCustomerSummary" class="ledger-summary-section card">
+            <p>Select customer to view ledger</p>
+          </section>
+
+          <section class="ledger-list-section card">
+            <div id="ledgerEntriesList" class="list-wrap">
+              <div class="empty-list-state">
+                <p>No ledger entries</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="ledger-actions-section card">
+            <div class="action-grid">
+              <button id="ledgerAddPaymentBtn" class="action-btn success-btn">Add Payment</button>
+              <button id="ledgerStatementBtn" class="action-btn">Statement</button>
+              <button id="ledgerPdfBtn" class="action-btn">PDF</button>
+              <button id="ledgerWhatsappBtn" class="action-btn">WhatsApp</button>
+              <button id="ledgerPendingBtn" class="action-btn warning-btn">Pending Empties</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- SETTINGS PAGE -->
+      <section id="settingsPage" class="page">
+        <div class="page-scroll">
+          <section class="settings-grid-section">
+            <div class="settings-grid">
+              <button class="settings-card" data-settings-page="dashboard"><span>📊</span><span>Dashboard</span></button>
+              <button class="settings-card" data-settings-page="customers"><span>👤</span><span>Customers</span></button>
+              <button class="settings-card" data-settings-page="inventory"><span>📦</span><span>Inventory</span></button>
+              <button class="settings-card" data-settings-page="rates"><span>💰</span><span>Products & Rates</span></button>
+              <button class="settings-card" data-settings-page="reminders"><span>⏰</span><span>Reminder Settings</span></button>
+              <button class="settings-card" data-settings-page="shop"><span>🏬</span><span>Shop Settings</span></button>
+              <button class="settings-card" data-settings-page="billdesign"><span>🧾</span><span>Bill Design</span></button>
+              <button class="settings-card" data-settings-page="reports"><span>📈</span><span>Reports</span></button>
+              <button class="settings-card" data-settings-page="backup"><span>💾</span><span>Backup & Restore</span></button>
+              <button class="settings-card" data-settings-page="theme"><span>🎨</span><span>Theme & Language</span></button>
+              <button class="settings-card" data-settings-page="users"><span>👥</span><span>Users</span></button>
+              <button class="settings-card" data-settings-page="notifications"><span>🔔</span><span>Notifications</span></button>
+              <button class="settings-card" data-settings-page="audit"><span>🕵️</span><span>Audit Log</span></button>
+              <button class="settings-card" data-settings-page="suppliers"><span>🚚</span><span>Suppliers</span></button>
+              <button class="settings-card" data-settings-page="purchases"><span>🛒</span><span>Purchases</span></button>
+              <button class="settings-card" data-settings-page="cashbook"><span>💵</span><span>Cashbook</span></button>
+              <button class="settings-card" data-settings-page="expenses"><span>💸</span><span>Expenses</span></button>
+              <button class="settings-card" data-settings-page="checklist"><span>✅</span><span>Checklist</span></button>
+            </div>
+          </section>
+
+          <section id="settingsDetailPanel" class="settings-detail-panel card">
+            <div id="settingsDetailContent">
+              <h3>Settings Panel</h3>
+              <p>Select an option to open dashboard, inventory, reports, rates, reminders and more.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav id="bottomNav" class="bottom-nav">
+      <button class="nav-btn active" data-page="shopPage" data-title="دکان" data-subtitle="Gas Shop POS">
+        <span class="nav-icon">🏪</span>
+        <span class="nav-label">دکان</span>
+      </button>
+
+      <button class="nav-btn" data-page="billsPage" data-title="بل" data-subtitle="Bills & Orders">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label">بل</span>
+      </button>
+
+      <button class="nav-btn" data-page="ledgerPage" data-title="لیجر" data-subtitle="Customer Accounts">
+        <span class="nav-icon">📒</span>
+        <span class="nav-label">لیجر</span>
+      </button>
+
+      <button class="nav-btn" data-page="settingsPage" data-title="سیٹنگز" data-subtitle="Dashboard & Setup">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">سیٹنگز</span>
+      </button>
+    </nav>
+
+    <!-- Modal Root -->
+    <div id="modalRoot" class="modal-root"></div>
+
+    <!-- Toast -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/pos.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
